@@ -11,37 +11,36 @@ for range_idx, line in enumerate(lines):
         if range_start <= start <= range_end or range_start <= end <= range_end:
             end = max(range_end, end)
             start = min(range_start, start)
-            del ranges[idx]
+            idx_to_remove.append(idx)
+    idx_to_remove.sort(reverse=True)
+    for idx in idx_to_remove:
+        del ranges[idx]
     ranges.append((start, end))
 
-len_ranges = -1
-while len_ranges != len(ranges):
-    len_ranges = len(ranges)
-    ranges_copy = ranges.copy()
-    for idx, range in enumerate(ranges_copy):
-        start, end = range
-        for jdx, other_range in enumerate(ranges_copy):
+needs_fixing = [True]
+while needs_fixing:
+    needs_fixing = []
+    for idx, range in enumerate(ranges):
+        for jdx, other_range in enumerate(ranges):
             if idx == jdx:
                 continue
             if other_range[0] <= range[0] <= other_range[1] or other_range[0] <= range[1] <= other_range[1]:
-                end = max(range_end, range[1])
-                start = min(range_start, range[0])
-                try:
-                    del ranges[max(idx, jdx)]
-                    del ranges[min(jdx, idx)]
-                except:
-                    breakpoint()
-                    pass
-        ranges.append((start, end))
-    print(f'Removed {len_ranges - len(ranges)} ranges')
-    
+                needs_fixing.append(idx)
 
-for idx, range in enumerate(ranges):
-    for jdx, other_range in enumerate(ranges):
-        if idx == jdx:
-            continue
-        if other_range[0] <= range[0] <= other_range[1] or other_range[0] <= range[1] <= other_range[1]:
-            print(f'{idx} {range=} - {jdx} {other_range=}')
+    for idx in needs_fixing:
+        start, end = ranges[idx]
+        idx_to_remove = []
+        for jdx, (other_start, other_end) in enumerate(ranges):
+            if jdx == idx:
+                continue
+            if other_start <= start <= other_end or other_start <= end <= other_end:
+                end = max(other_end, end)
+                start = min(other_start, start)
+                idx_to_remove.append(jdx)
+        ranges[idx] = (start, end)
+        idx_to_remove.sort(reverse=True)
+        for jdx in idx_to_remove:
+            del ranges[jdx]
 
 total_2 = 0
 for range in ranges:
